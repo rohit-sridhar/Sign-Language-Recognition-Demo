@@ -20,6 +20,12 @@ To stop the container, run `docker stop CONTAINER ID`, where the `CONTAINER ID` 
 ## Using the Demo
 Before proceeding, download the data at this Google Drive [link](https://drive.google.com/file/d/1_sImmOjPiflbV7TWDzTiHs1W1qMF3DtY), extract the videos and add them to `Sign-Language-Recognition-Demo/videos`.
 
+Next, install jupyterlab and ipywidgets (this won't be necessary after we get a new Docker Image). Run the following commands:
+```
+pip install jupyterlab
+pip install ipywidgets
+```
+
 Next, open the Docker container in your CLI (see previous section for details). Once launched, `cd` to `/root/Sign-Language-Recognition-Demo` and run the following command
 ```
 jupyter notebook --ip 0.0.0.0 --port 8889 --allow-root --no-browser
