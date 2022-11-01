@@ -18,4 +18,4 @@ Next, execute `run_docker.sh launch_jup`. Run `docker ps` to confirm that the co
 To stop the container, run `docker stop CONTAINER ID`, where the `CONTAINER ID` is retrieved by running `docker ps`. To remove the container from memory, run `docker rm CONTAINER ID`
 
 ## Using the Demo
-
+Before proceeding, download the data at this Google Drive [link](https://drive.google.com/file/d/1_sImmOjPiflbV7TWDzTiHs1W1qMF3DtY), extract the videos and add them to `Sign-Language-Recognition-Demo/videos`.
