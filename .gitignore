@@ -19,6 +19,7 @@ dict
 wordList
 grammar.txt
 wordNet.txt
+configs/prototypes.json
 
 # Python Gitignore Template
 # Byte-compiled / optimized / DLL files
