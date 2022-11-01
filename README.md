@@ -31,7 +31,7 @@ Next, open the Docker container in your CLI (see previous section for details). 
 jupyter notebook --ip 0.0.0.0 --port 8889 --allow-root --no-browser
 ```
 
-The commands above assume you are running Docker from your local machine. You may need to run this on a remote server (due to limited computer resources on your local machine). To do so, follow the instructions above on the remote machine, then create an SSH tunnel from your local machine. Either use port 8889, or change the port in the command above and in the launch script, `run_docker.sh`. Here is a command to create a tunnel on from your local port 8889 to the remote machine's port 8889. This command blocks.
+The commands above assume you are running Docker from your local machine. You may need to run this on a remote server (due to limited computer resources on your local machine). To do so, follow the instructions above on the remote machine, then create an SSH tunnel from your local machine. Either use port 8889, or change the port in the command above and in the launch script, `run_docker.sh`. Here is a command to create a tunnel on from your local port 8889 to the remote machine's port 8889. This command blocks while tunneling.
 ```
 ssh -N -L 8889:SERVER_ADDRESS:8889 USERNAME@SERVER_ADDRESS
 ```
