@@ -1,12 +1,12 @@
 #!/bin/bash
 
-mb_pipe_path="$HOME/Mobile-Data-Processing-Pipeline"
+mb_pipe_path="$HOME/Sign-Language-Recognition-Demo"
 vimrc_path="$HOME/.vimrc"
 
-if [ "$1" == "launch_jup" ]; then
+if [ "$1" == "launch_demo" ]; then
     sudo docker run -dit -p 8889:8889 -v "$mb_pipe_path":/root/Sign-Language-Recognition-Demo --name sign_recognition_demo gurudesh/copycat:copycat-cpu
     sudo docker cp "$vimrc_path" sign_recognition_demo:/root
-elif [ "$1" == "run_jup" ]; then
+elif [ "$1" == "run_demo" ]; then
     sudo docker exec -it sign_recognition_demo /bin/bash
 elif [ "$1" == "run_command" ]; then
     if [ "$2" == "" ]; then
@@ -15,5 +15,5 @@ elif [ "$1" == "run_command" ]; then
     fi
     sudo docker exec -d sign_recognition_demo "$2"
 else
-    echo "Specify either launch (create the container) or run (resume the existing conainer)"
+    echo "Specify either launch_demo (create the container) or run_demo (resume the existing conainer)"
 fi
