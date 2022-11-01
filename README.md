@@ -31,6 +31,9 @@ Next, open the Docker container in your CLI (see previous section for details). 
 jupyter notebook --ip 0.0.0.0 --port 8889 --allow-root --no-browser
 ```
 
-You may need to install jupyter, depending on the Docker container you are using. Run `pip install jupyterlab` to install it. Once launched, open `sign_recognition_demo.ipynb` to run the demo.
+The commands above assume you are running Docker from your local machine. You may need to run this on a remote server (due to limited computer resources on your local machine). To do so, follow the instructions above on the remote machine, then create an SSH tunnel from your local machine. Either use port 8889, or change the port in the command above and in the launch script, `run_docker.sh`. Here is a command to create a tunnel on from your local port 8889 to the remote machine's port 8889. This command blocks.
+```
+ssh -N -L 8889:SERVER_ADDRESS:8889 USERNAME@SERVER_ADDRESS
+```
 
-Note that if you're running this on a remote server, you will first have to set up a tunnel to that server which tunnels to the port that jupyter maps the docker ports to.
+You can now access the Jupyter UI by navigating to `localhost:8889` in your web browser.
