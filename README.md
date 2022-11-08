@@ -31,3 +31,8 @@ ssh -N -L 8889:SERVER_ADDRESS:8889 USERNAME@SERVER_ADDRESS
 ```
 
 You can now access the Jupyter UI by navigating to `localhost:8889` in your web browser.
+
+## Troubleshooting
+Sometimes, you may need to relaunch the docker container, while an existing one is running. Docker won't let you launch two containers with the same name. Stop the original container with the command `docker stop CONTAINER ID` and then the command `docker rm CONTAINER ID`.
+
+If the `Sign-Language-Recognition-Demo` directory is empty once you launch the docker container, make sure you check the path to it in the `run_docker.sh` script. Having the incorrect path can cause issues. To fix it, remove the docker container with the empty directory and relaunch it using the script with the fixed path.
