@@ -1,11 +1,11 @@
 #!/bin/bash
 
 mb_pipe_path="$HOME/Sign-Language-Recognition-Demo"
-vimrc_path="$HOME/.vimrc"
+# vimrc_path="$HOME/.vimrc"
 
 if [ "$1" == "launch_demo" ]; then
     sudo docker run -dit -p 8889:8889 -v "$mb_pipe_path":/root/Sign-Language-Recognition-Demo --name sign_recognition_demo gurudesh/copycat:popsign-cpu
-    sudo docker cp "$vimrc_path" sign_recognition_demo:/root
+#     sudo docker cp "$vimrc_path" sign_recognition_demo:/root
 elif [ "$1" == "run_demo" ]; then
     sudo docker exec -it sign_recognition_demo /bin/bash
 elif [ "$1" == "run_command" ]; then

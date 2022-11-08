@@ -23,7 +23,6 @@ MP_TRACK_CONFIDENCE = 0.1
 # to repeatedly process the same videos in the same folders unless we delete them.
 #
 # Disable at runtime using the --noMark option.
-MARK_EXTRACTED = True
 
 # The suffix to add to the filename when it has been extracted, if MARK_EXTRACTED
 # is True. This should not be changed after the initial setup if we want to avoid
@@ -37,7 +36,6 @@ INPUT_DIRECTORY = './'
 # OUTPUT_DIRECTORY.
 #
 # Can be specified at runtime via the --outputDirectory option.
-OUTPUT_DIRECTORY = './output/'
 
 # The label to use within the output directory structure. For reference, the format
 # for output files is
@@ -62,7 +60,7 @@ PADDING_DIGITS = 8
 # mediaPipeWrapper.py
 #
 #
-def detect_features(video_file, output_file):
+def detect_features(video_file, output_file, noMark):
     with mp.solutions.holistic.Holistic(
         min_detection_confidence=MP_DETECT_CONFIDENCE,
         min_tracking_confidence=MP_TRACK_CONFIDENCE
@@ -125,33 +123,31 @@ def detect_features(video_file, output_file):
 
         output_path = Path(output_file)
         output_path.parent.mkdir(exist_ok=True, parents=True)
-
+        
         with open(output_file, "w") as outfile:
             json.dump(features, outfile, indent=4)
 
-        if MARK_EXTRACTED:
+        if not noMark:
             new_name = video_file.split('.')
             new_name[-2] += MARKING_SUFFIX
             os.rename(video_file, '.'.join(new_name))
 
 
 # Auto-detect number of CPU threads?
-THREADS = 32
-lock = threading.Semaphore(THREADS)
-
 
 class FeatureExtractorThread(threading.Thread):
-    def __init__(self, input_filename, output_filename):
+    def __init__(self, input_filename, output_filename, noMark):
         super().__init__()
         self.input_filename = input_filename
         self.output_filename = output_filename
+        self.noMark = noMark
 
     def run(self) -> None:
-        detect_features(self.input_filename, self.output_filename)
+        detect_features(self.input_filename, self.output_filename, self.noMark)
         lock.release()
 
 
-def df_multithreaded(input_filenames, output_filenames):
+def df_multithreaded(input_filenames, output_filenames, noMark):
     if len(input_filenames) != len(output_filenames):
         raise RuntimeError('Length of input and output file name arrays is not equal')
 
@@ -161,7 +157,7 @@ def df_multithreaded(input_filenames, output_filenames):
 
     while i < total and lock.acquire():
         print(f'{i + 1} / {total}: {input_filenames[i]}')
-        thread = FeatureExtractorThread(input_filenames[i], output_filenames[i])
+        thread = FeatureExtractorThread(input_filenames[i], output_filenames[i], noMark)
         thread.start()
         thread_refs.append(thread)
         i += 1
@@ -172,7 +168,7 @@ def df_multithreaded(input_filenames, output_filenames):
     print('Feature extraction complete')
 
 
-def enumerate_files(input_folder):
+def enumerate_files(inputDirectory, outputDirectory):
     input_filenames, output_filenames = list(), list()
 
     # Keeps track of the attempt number for each user/sign
@@ -183,7 +179,7 @@ def enumerate_files(input_folder):
         existing_len = len(str(num))
         return f'{(PADDING_DIGITS - existing_len) * "0"}{num}'
 
-    all_files = sorted(os.listdir(input_folder))
+    all_files = sorted(os.listdir(inputDirectory))
 
     for file in all_files:
         # Validate file extension
@@ -227,7 +223,7 @@ def enumerate_files(input_folder):
 
         attempt_counts[user_id][session_start][sign] += 1
 
-        input_filenames.append(f'{INPUT_DIRECTORY}{file}')
+        input_filenames.append(f'{inputDirectory}{file}')
 
         attempt_str = pad(attempt_counts[user_id][session_start][sign])
         
@@ -240,7 +236,7 @@ def enumerate_files(input_folder):
         # print(f'Attempt: {attempt_str}')
         # print(f'Session Start: {session_start}')
         # print()
-        output_filenames.append(f'{OUTPUT_DIRECTORY}{user_id}-{FILE_LABEL}/{sign}/'
+        output_filenames.append(f'{outputDirectory}{user_id}-{FILE_LABEL}/{sign}/'
                                 f'{session_start}/{user_id}.{sign}.{FILE_LABEL}.{attempt_str}.data')
 
     # '1-2022-05-singlesign'
@@ -248,55 +244,75 @@ def enumerate_files(input_folder):
     return input_filenames, output_filenames
 
 
-if __name__ == '__main__':
-    args = argparse.ArgumentParser()
-    args.add_argument('--noMark', action='store_true',
-                      help='If provided, files that are processed will not be renamed to include "-done" '
-                           'at the end of their filenames. This means they will be re-processed the next '
-                           'time this script is run.')
-    args.add_argument('--inputDirectory',
-                      help='Specifies the directory containing the video files to be processed. If not '
-                           'specified, defaults to the current directory.')
-    args.add_argument('--outputDirectory',
-                      help='Specifies the location where the output should be created. If not specified, '
-                           'defaults to the "output" folder within the current directory. (This folder '
-                           'does not need to already exist at runtime, the script can create it for you.)')
-    args.add_argument('--fileLabel',
-                      help='The tag to include in the processed file names. If not specified, defaults '
-                           'to "singlesign".')
-    args.add_argument('--paddingDigits', type=int,
-                      help='The number of padding digits to use when numbering attempts of a sign. If '
-                           'not specified, defaults to 8.')
-    parsed = args.parse_args()
+#if __name__ == '__main__':
+#    args = argparse.ArgumentParser()
+#    args.add_argument('--noMark', action='store_true',
+#                      help='If provided, files that are processed will not be renamed to include "-done" '
+#                           'at the end of their filenames. This means they will be re-processed the next '
+#                           'time this script is run.')
+#    args.add_argument('--inputDirectory',
+#                      help='Specifies the directory containing the video files to be processed. If not '
+#                           'specified, defaults to the current directory.')
+#    args.add_argument('--outputDirectory',
+#                      help='Specifies the location where the output should be created. If not specified, '
+#                           'defaults to the "output" folder within the current directory. (This folder '
+#                           'does not need to already exist at runtime, the script can create it for you.)')
+#    args.add_argument('--fileLabel',
+#                      help='The tag to include in the processed file names. If not specified, defaults '
+#                           'to "singlesign".')
+#    args.add_argument('--paddingDigits', type=int,
+#                      help='The number of padding digits to use when numbering attempts of a sign. If '
+#                           'not specified, defaults to 8.')
+#    parsed = args.parse_args()
+#
+#    if parsed.noMark:
+#        MARK_EXTRACTED = False
+#
+#    if parsed.inputDirectory is not None:
+#        INPUT_DIRECTORY = parsed.inputDirectory
+#        if not INPUT_DIRECTORY.endswith('/'):
+#            INPUT_DIRECTORY += '/'
+#
+#    if parsed.outputDirectory is not None:
+#        OUTPUT_DIRECTORY = parsed.outputDirectory
+#        if not OUTPUT_DIRECTORY.endswith('/'):
+#            OUTPUT_DIRECTORY += '/'
+#
+#    if parsed.fileLabel is not None:
+#        FILE_LABEL = parsed.fileLabel
+#
+#    if parsed.paddingDigits is not None:
+#        PADDING_DIGITS = parsed.paddingDigits
+#
+#    input_files, output_files = enumerate_files(INPUT_DIRECTORY)
+#
+#    start_time = time.time()
+#    df_multithreaded(input_files, output_files)
+#    end_time = time.time()
+#
+#    print(f'Time elapsed = {(end_time - start_time) * 1000} ms')
 
-    if parsed.noMark:
-        MARK_EXTRACTED = False
+def main(noMark=False, inputDirectory='./', outputDirectory='./output/', fileLabel=None, paddingDigits=None, num_threads=4):
+    lock = threading.Semaphore(num_threads)
+    globals()['lock'] = lock
+    
+    if not inputDirectory.endswith('/'):
+        inputDirectory += '/'
 
-    if parsed.inputDirectory is not None:
-        INPUT_DIRECTORY = parsed.inputDirectory
-        if not INPUT_DIRECTORY.endswith('/'):
-            INPUT_DIRECTORY += '/'
+    if not outputDirectory.endswith('/'):
+        outputDirectory += '/'
 
-    if parsed.outputDirectory is not None:
-        OUTPUT_DIRECTORY = parsed.outputDirectory
-        if not OUTPUT_DIRECTORY.endswith('/'):
-            OUTPUT_DIRECTORY += '/'
+    if fileLabel is not None:
+        FILE_LABEL = fileLabel
 
-    if parsed.fileLabel is not None:
-        FILE_LABEL = parsed.fileLabel
-
-    if parsed.paddingDigits is not None:
-        PADDING_DIGITS = parsed.paddingDigits
-
-    input_files, output_files = enumerate_files(INPUT_DIRECTORY)
+    if paddingDigits is not None:
+        PADDING_DIGITS = paddingDigits
+    
+    input_files, output_files = enumerate_files(inputDirectory, outputDirectory)
 
     start_time = time.time()
-    df_multithreaded(input_files, output_files)
+    df_multithreaded(input_files, output_files, noMark)
     end_time = time.time()
 
     print(f'Time elapsed = {(end_time - start_time) * 1000} ms')
-
-
-
-
 

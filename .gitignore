@@ -6,6 +6,7 @@ hresults/
 logs/
 raw/
 lists/
+output/
 mediapipe/
 models/
 raw_final/
